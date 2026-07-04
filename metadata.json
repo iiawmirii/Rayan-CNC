@@ -1,6 +1,0 @@
-{
-  "name": "Ryan CNC",
-  "description": "Micron-Level Swiss Turning & CNC Machining Excellence Website",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
