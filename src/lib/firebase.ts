@@ -193,9 +193,13 @@ export function onAuthStateChanged(authObj: any, callback: (user: any) => void) 
 
 export async function signInWithEmailAndPassword(authObj: any, email: string, pass: string) {
   const settings = getLocalData('settings').config || {};
-  const correctPass = settings.adminPasscode || 'RyanCNC2026!';
-  
-  if (pass === correctPass || pass === 'admin') {
+  const correctPass = settings.adminPasscode;
+
+  if (!correctPass) {
+    throw new Error('رمز عبور مدیریت تنظیم نشده است.');
+  }
+
+  if (pass === correctPass) {
     const user = { email: email || 'admin@ryancnc.com', uid: 'admin-uid' };
     localStorage.setItem('ryancnc_user', JSON.stringify(user));
     triggerAuthListeners();

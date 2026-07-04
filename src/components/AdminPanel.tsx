@@ -76,6 +76,8 @@ export default function AdminPanel({
   const [passcode, setPasscode] = useState('');
   const [authError, setAuthError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isLockedOut, setIsLockedOut] = useState(false);
 
   // Active tab inside panel
   const [activeTab, setActiveTab] = useState<'portfolio' | 'machines' | 'settings' | 'inquiries'>('portfolio');
@@ -121,7 +123,7 @@ export default function AdminPanel({
     if (isAdminLoggedIn) {
       setSettingsForm({
         ...settings,
-        adminPasscode: settings.adminPasscode || 'RyanCNC2026!',
+        adminPasscode: settings.adminPasscode || '',
       });
 
       // Listen to inquiries in real-time
@@ -144,36 +146,59 @@ export default function AdminPanel({
     setAuthError('');
     setIsAuthenticating(true);
 
+    if (isLockedOut) {
+      setAuthError('تعداد تلاش‌های ناموفق بیش از حد مجاز است. لطفاً چند لحظه صبر کنید.');
+      setIsAuthenticating(false);
+      return;
+    }
+
     const targetEmail = email || 'admin@ryancnc.com';
-    const loginPassword = password || passcode; // Support either password or simple passcode
+    const loginPassword = password || passcode;
 
-    const correctPass = settings.adminPasscode || 'RyanCNC2026!';
+    const correctPass = settings.adminPasscode;
+    if (!correctPass) {
+      setAuthError('رمز عبور مدیریت تنظیم نشده است.');
+      setIsAuthenticating(false);
+      return;
+    }
 
-    // Secure custom fallback: if they type the secret master passcode, let them in!
-    if (loginPassword === correctPass || loginPassword === 'admin') {
+    if (loginPassword === correctPass) {
       try {
-        // Try real Firebase Auth first
-        await signInWithEmailAndPassword(auth, targetEmail, 'RyanCNC2026!');
+        await signInWithEmailAndPassword(auth, targetEmail, loginPassword);
       } catch (err: any) {
-        // If the account doesn't exist, let's try to automatically register them
-        // This makes sure they can log in seamlessly on the first run of a new Firebase project!
         try {
-          await createUserWithEmailAndPassword(auth, targetEmail, 'RyanCNC2026!');
+          await createUserWithEmailAndPassword(auth, targetEmail, loginPassword);
         } catch (signupErr) {
           console.warn('Authentication fallback activated. Using local session.', signupErr);
         }
       }
+      setLoginAttempts(0);
       setIsAdminLoggedIn(true);
+      setIsAuthenticating(false);
+      return;
+    }
+
+    const newAttempts = loginAttempts + 1;
+    setLoginAttempts(newAttempts);
+
+    if (newAttempts >= 5) {
+      setIsLockedOut(true);
+      setAuthError('تعداد تلاش‌های ناموفق بیش از حد مجاز است. ۶۰ ثانیه صبر کنید.');
+      setTimeout(() => {
+        setIsLockedOut(false);
+        setLoginAttempts(0);
+      }, 60000);
       setIsAuthenticating(false);
       return;
     }
 
     try {
       await signInWithEmailAndPassword(auth, targetEmail, loginPassword);
+      setLoginAttempts(0);
       setIsAdminLoggedIn(true);
     } catch (err: any) {
       console.error(err);
-      setAuthError(err.message || 'Invalid email credentials or master passcode.');
+      setAuthError(err.message || 'Invalid credentials.');
     } finally {
       setIsAuthenticating(false);
     }
@@ -462,15 +487,6 @@ export default function AdminPanel({
                         : 'border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400'
                     }`}
                   />
-                </div>
-
-                <div className={`rounded-sm p-4 border font-sans text-[10px] leading-relaxed text-right ${
-                  theme === 'dark' ? 'bg-zinc-950 border-zinc-800/60 text-zinc-500' : 'bg-amber-50/50 border-amber-200/50 text-amber-800'
-                }`}>
-                  <div className="flex items-center gap-1.5 text-amber-500 font-semibold mb-1 uppercase tracking-wider flex-row-reverse">
-                    <AlertCircle className="h-3 w-3" /> یادداشت فنی برای دسترسی سریع:
-                  </div>
-                  برای ورود بدون معطلی و تست کامل، گذرواژه ارشد <strong className="text-amber-500">RyanCNC2026!</strong> را در فیلد بالا وارد نمایید تا حساب کاربری شما فوراً به صورت امن وارد و دسترسی‌های فایراستور فعال گردد.
                 </div>
 
                 <button
@@ -1066,20 +1082,6 @@ export default function AdminPanel({
                         type="text"
                         value={settingsForm.tagline || ''}
                         onChange={(e) => setSettingsForm({ ...settingsForm, tagline: e.target.value })}
-                        className="mt-1 w-full rounded-sm border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:outline-none focus:border-amber-500 text-sm font-sans text-right"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-sans text-xs uppercase tracking-wider text-zinc-400 text-right">
-                        رمز عبور و پاسکد ورود سریع به پرتال مدیریت
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={settingsForm.adminPasscode || ''}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, adminPasscode: e.target.value })}
-                        placeholder="رمز عبور مدیریت (پیش‌فرض: RyanCNC2026!)"
                         className="mt-1 w-full rounded-sm border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:outline-none focus:border-amber-500 text-sm font-sans text-right"
                       />
                     </div>

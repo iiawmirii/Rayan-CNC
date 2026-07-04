@@ -1,9 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write for all collections to support local-passcode-based administration
-    match /{document=**} {
-      allow read, write: if true;
+    // Public read-only access for portfolio, machines, and settings
+    match /portfolio/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /machines/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Inquiries: no public access
+    match /inquiries/{id} {
+      allow read, write: if false;
     }
   }
 }

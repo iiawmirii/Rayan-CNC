@@ -38,7 +38,11 @@ export default function Navbar({
     if (newCount >= 5) {
       setClicks(0);
       const password = prompt('لطفاً رمز عبور ورود به پرتال مدیریت را وارد کنید:');
-      const correctPass = settings?.adminPasscode || 'RyanCNC2026!';
+      const correctPass = settings?.adminPasscode;
+      if (!correctPass) {
+        alert('رمز عبور مدیریت تنظیم نشده است.');
+        return;
+      }
       if (password === correctPass) {
         onAdminClick();
       } else if (password !== null) {

@@ -182,7 +182,11 @@ export default function App() {
     const password = prompt('لطفاً رمز عبور ورود به پرتال مدیریت را وارد کنید:');
     if (password === null) return;
 
-    const correctPassword = settings.adminPasscode || 'RyanCNC2026!';
+    const correctPassword = settings.adminPasscode;
+    if (!correctPassword) {
+      alert('رمز عبور مدیریت تنظیم نشده است.');
+      return;
+    }
     if (password === correctPassword) {
       setIsAdminPanelOpen(true);
       setIsAdminLoggedIn(true);
@@ -190,10 +194,10 @@ export default function App() {
       try {
         const targetEmail = 'admin@ryancnc.com';
         try {
-          await signInWithEmailAndPassword(auth, targetEmail, 'RyanCNC2026!');
+          await signInWithEmailAndPassword(auth, targetEmail, password);
         } catch (err) {
           try {
-            await createUserWithEmailAndPassword(auth, targetEmail, 'RyanCNC2026!');
+            await createUserWithEmailAndPassword(auth, targetEmail, password);
           } catch (signupErr) {
             console.warn('Fallback local session activated', signupErr);
           }
