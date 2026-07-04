@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "PortfolioItem": {
+      "title": "Portfolio Item",
+      "description": "A manufactured sample work or project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "specifications": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "description", "category", "imageUrl", "createdAt"]
+    },
+    "Machine": {
+      "title": "Machine for Sale",
+      "description": "A CNC or Swiss turning machine available for purchase",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "model": { "type": "string" },
+        "year": { "type": "string" },
+        "specifications": { "type": "string" },
+        "price": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "model", "year", "specifications", "price", "imageUrl", "status", "createdAt"]
+    },
+    "WorkshopSettings": {
+      "title": "Workshop Settings",
+      "description": "Contact info, address, phone numbers, and email",
+      "type": "object",
+      "properties": {
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "workingHours": { "type": "string" },
+        "adminPasscode": { "type": "string" }
+      },
+      "required": ["address", "phone", "email", "workingHours"]
+    }
+  },
+  "firestore": {
+    "/portfolio/{id}": {
+      "schema": "PortfolioItem",
+      "description": "List of sample works"
+    },
+    "/machines/{id}": {
+      "schema": "Machine",
+      "description": "List of CNC machines for sale"
+    },
+    "/settings/config": {
+      "schema": "WorkshopSettings",
+      "description": "General workshop settings and configs"
+    }
+  }
+}
